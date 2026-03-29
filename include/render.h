@@ -21,6 +21,11 @@
 bool screen_init(const uint8_t width, const uint8_t height);
 
 /**
+ * @brief Deallocate screen resources, including framebuffer data.
+ */
+void screen_teardown();
+
+/**
  * @brief Draw a wireframe from vertices given indices.
  *
  * Each element in the vertices array represents a point in three-dimensional
@@ -33,16 +38,25 @@ bool screen_init(const uint8_t width, const uint8_t height);
  * a triangle. Each component of the triplet is an index corresponding to a
  * vertex in the vertices array.
  *
+ * Drawing is done directly to the framebuffer. The render() function must be
+ * called in order for the framebuffer data to be printed/displayed.
+ *
  * @param[in] vertices An array of vertices in clip space.
  * @param[in] num_vertices The number of vertices in the vertices array.
  * @param[in] indices An array of indices.
  * @param[in] num_indices The number of indices in the indices array.
+ * @return True if drawing was successful, false otherwise.
  */
-void draw_wireframe(
+bool draw_wireframe(
 	const vec4f_t vertices[],
 	const uint16_t num_vertices,
 	const vec3u_t indices[],
 	const uint16_t num_indices
 ); 
+
+/**
+ * @brief Render the data within the framebuffer.
+ */
+void render();
 
 #endif // RENDER_H

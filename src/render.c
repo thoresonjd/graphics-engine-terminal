@@ -8,11 +8,18 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief The ASCII character to print when rendering objects.
  */
 static const char PIXEL = '$';
+
+/**
+ * @brief The buffer containing pixels to render.
+ */
+static char* framebuffer = NULL;
 
 /**
  * @brief The width of the screen.
@@ -118,47 +125,104 @@ static vec4f_t vertex_ndc(const vec4f_t vertex);
 static vec4f_t vertex_screen(const vec4f_t vertex);
 
 /**
+ * @brief Convert screen coordinates to an index in the framebuffer.
+ * @param[out] index The index to compute.
+ * @param[in] x The x coordinate (column).
+ * @param[in] y The y coordinate (row).
+ * @return True if x and y compute a valid index, false otherwise.
+ */
+static bool screen_index(
+	uint16_t* const index,
+	const uint8_t x,
+	const uint8_t y
+);
+
+/**
+ * @brief Write a pixel to the framebuffer
+ * @param[in] screen_pixel Pixel coordinates in screen space.
+ * @return True if writing to the framebuffer is successful, false otherwise.
+ */
+static bool write_framebuffer(const vec4f_t screen_pixel);
+
+/**
  * @brief Draw a line between two vertices.
  * @param[in] vertex_a The first vertex.
  * @param[in] vertex_b The second vertex.
+ * @return True if drawing was successful, false otherwise.
  */
-static void draw_line(const vec4f_t vertex_a, const vec4f_t vertex_b);
+static bool draw_line(const vec4f_t vertex_a, const vec4f_t vertex_b);
 
 /**
  * @brief Draw a triangle from three vertices.
  * @param[in] vertex_a The first vertex.
  * @param[in] vertex_b The second vertex.
  * @param[in] vertex_c The third vertex.
+ * @return True if drawing was successful, false otherwise.
  */
-static void draw_triangle(
+static bool draw_triangle(
 	const vec4f_t vertex_a,
 	const vec4f_t vertex_b,
 	const vec4f_t vertex_c
 );
+
+static void clear_framebuffer() {
+	const uint16_t screen_size = screen_width * screen_height;
+	memset(framebuffer, ' ', screen_size);
+}
 
 bool screen_init(const uint8_t width, const uint8_t height) {
 	if (width <= 0 || height <= 0)
 		return false;
 	screen_width = width;
 	screen_height = height;
+	const uint16_t screen_size = screen_width * screen_height;
+	framebuffer = (char*)malloc(screen_size);
+	if (!framebuffer)
+		return false;
+	clear_framebuffer();
 	return true;
 }
 
-void draw_wireframe(
+void screen_teardown() {
+	free(framebuffer);
+	framebuffer = NULL;
+}
+
+bool draw_wireframe(
 	const vec4f_t vertices[],
 	const uint16_t num_vertices,
 	const vec3u_t indices[],
 	const uint16_t num_indices
 ) {
+	/*
+	 * TODO:
+	 * Clearing the framebuffer when drawing each wireframe prevents multiple
+	 * wireframes from being drawn, as subsequent calls will override previous
+	 * ones. This is only temporary, as programs currently running only render
+	 * one wireframe. Eventually, a double buffer and a depth buffer will be
+	 * implemented to assist in solving this.
+	 */
+	clear_framebuffer();
 	for (uint16_t i = 0; i < num_indices; i++) {
 		if (indices[i].x > num_vertices ||
 			indices[i].y > num_vertices ||
 			indices[i].z > num_vertices)
-			return; // Invalid
+			return false;
 		vec4f_t vertex_a = vertices[indices[i].x];
 		vec4f_t vertex_b = vertices[indices[i].y];
 		vec4f_t vertex_c = vertices[indices[i].z];
-		draw_triangle(vertex_a, vertex_b, vertex_c);
+		if (!draw_triangle(vertex_a, vertex_b, vertex_c))
+			return false;
+	}
+	return true;
+}
+
+void render() {
+	const uint16_t screen_size = screen_width * screen_height;
+	for (uint16_t i = 0; i < screen_size; i++) {
+		putchar(framebuffer[i]);
+		if (i % screen_width == screen_width - 1)
+			putchar('\n');
 	}
 }
 
@@ -200,7 +264,29 @@ static vec4f_t vertex_screen(const vec4f_t vertex) {
 	};
 }
 
-static void draw_line(const vec4f_t vertex_a, const vec4f_t vertex_b) {
+static bool screen_index(
+	uint16_t* const index,
+	const uint8_t x,
+	const uint8_t y
+) {
+	if (x > screen_width || y > screen_height)
+		return false;
+	*index = screen_width * y + x;
+	return true;
+}
+
+static bool write_framebuffer(const vec4f_t screen_pixel) {
+	if (screen_pixel.x < 0.0f || screen_pixel.x > screen_width ||
+		screen_pixel.y < 0.0f || screen_pixel.y > screen_height)
+		return false;
+	uint16_t index;
+	if (!screen_index(&index, screen_pixel.x, screen_pixel.y))
+		return false;
+	framebuffer[index] = PIXEL;
+	return true;
+}
+
+static bool draw_line(const vec4f_t vertex_a, const vec4f_t vertex_b) {
 	/*
      * TODO:
      * Currently, line_clip will prevent a line from being rendered in its
@@ -232,27 +318,24 @@ static void draw_line(const vec4f_t vertex_a, const vec4f_t vertex_b) {
 		if (!vertex_clip(between))
 			continue;
 		const vec4f_t screen_between = vertex_screen(vertex_ndc(between));
-		// TODO: write to a framebuffer instead of printing directly
-		if (screen_between.x >= 0.0f &&
-			screen_between.x < screen_width &&
-			screen_between.y >= 0.0f &&
-			screen_between.y < screen_height)
-			printf("\x1b[%d;%dH%c", (uint8_t)screen_between.y + 1, (uint8_t)screen_between.x + 1, PIXEL);
+		if (!write_framebuffer(screen_between))
+			return false;
 		between.x += increment.x;
 		between.y += increment.y;
 		between.z += increment.z;
 		between.w += increment.w;
 	}
-	fflush(stdout);
+	return true;
 }
 
-static void draw_triangle(
+static bool draw_triangle(
 	const vec4f_t vertex_a,
 	const vec4f_t vertex_b,
 	const vec4f_t vertex_c
 ) {
-	draw_line(vertex_a, vertex_b);
-	draw_line(vertex_b, vertex_c);
-	draw_line(vertex_c, vertex_a);
+	return
+		draw_line(vertex_a, vertex_b) &&
+		draw_line(vertex_b, vertex_c) &&
+		draw_line(vertex_c, vertex_a);
 }
 

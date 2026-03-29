@@ -152,11 +152,14 @@ int main(void) {
 			};
 			transformed[i] = vec4f_mat4f_multiply(transformed[i], transformation);
 		}
-		draw_wireframe(transformed, 8, cube_indices, 12);
+		if (!draw_wireframe(transformed, 8, cube_indices, 12))
+			break;
+		render();
 		// ----- end shader -----
 	    millisleep(MILLIS_PER_SECOND / frames_per_second);
 		delta_time_start += delta_time_frame;
 	}
+	screen_teardown();
 	return 0;
 }
 
