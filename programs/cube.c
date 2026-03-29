@@ -127,8 +127,8 @@ int main(void) {
 	if (!screen_init(SCREEN_WIDTH, SCREEN_HEIGHT))
 		return 1;
 	// render loop
+	clear_screen();
 	while (1) {
-		clear_screen();
 		reset_cursor();
 	    angle += 180.0f * delta_time_frame;
 	    mat4f_t model = FMAT4_IDENTITY;
@@ -164,7 +164,7 @@ int main(void) {
 }
 
 static void clear_screen() {
-	printf("\x1b[2J"); // FIX: continuous printing
+	printf("\x1b[2J");
 }
 
 static void reset_cursor() {
