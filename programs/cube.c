@@ -7,6 +7,7 @@
 #include <linalg.h>
 #include <trig.h>
 #include <window.h>
+#include <terminal.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
@@ -98,16 +99,6 @@ static const vec3u_t cube_indices[12] = {
 };
 
 /**
- * @brief Clear the screen.
- */
-static void clear_screen();
-
-/**
- * @brief Reset the cursor to the top-left position.
- */
-static void reset_cursor();
-
-/**
  * @brief Temporarily halt execution for a specified number of milliseconds.
  * @param[in] delay The number of milliseconds.
  */
@@ -128,9 +119,9 @@ int main(void) {
 	if (!window)
 		return 1;
 	// render loop
-	clear_screen();
+	terminal_clear_screen();
 	while (1) {
-		reset_cursor();
+		terminal_reset_cursor();
 	    angle += 180.0f * delta_time_frame;
 	    mat4f_t model = FMAT4_IDENTITY;
 		mat4f_scale(model, model, scale);
@@ -162,14 +153,6 @@ int main(void) {
 	}
 	window_teardown(window);
 	return 0;
-}
-
-static void clear_screen() {
-	printf("\x1b[2J");
-}
-
-static void reset_cursor() {
-	printf("\x1b[H");
 }
 
 static void millisleep(const uint16_t delay) {
