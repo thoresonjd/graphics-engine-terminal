@@ -6,7 +6,7 @@
 
 #include <linalg.h>
 #include <trig.h>
-#include <render.h>
+#include <window.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
@@ -124,7 +124,8 @@ int main(void) {
 	const vec3f_t scale = { 0.75f, 0.75f, 0.75 };
 	const vec3f_t translation = { 0.0f, 0.0f, -3.0f };
 	// screen dimensions
-	if (!screen_init(SCREEN_WIDTH, SCREEN_HEIGHT))
+	window_t* window = window_init(SCREEN_WIDTH, SCREEN_HEIGHT);
+	if (!window)
 		return 1;
 	// render loop
 	clear_screen();
@@ -152,14 +153,14 @@ int main(void) {
 			};
 			transformed[i] = vec4f_mat4f_multiply(transformed[i], transformation);
 		}
-		if (!draw_wireframe(transformed, 8, cube_indices, 12))
+		if (!window_draw_wireframe(window, transformed, 8, cube_indices, 12))
 			break;
-		render();
+		window_render(window);
 		// ----- end shader -----
 	    millisleep(MILLIS_PER_SECOND / frames_per_second);
 		delta_time_start += delta_time_frame;
 	}
-	screen_teardown();
+	window_teardown(window);
 	return 0;
 }
 

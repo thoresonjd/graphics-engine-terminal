@@ -1,29 +1,35 @@
 /**
- * @file render.h
- * @brief Render objects to the screen.
+ * @file window.h
+ * @brief Window: Draw and Render Objects
  * @author Justin Thoreson
  */
 
 #pragma once
-#ifndef RENDER_H
-#define RENDER_H
+#ifndef WINDOW_H
+#define WINDOW_H
 
 #include <linalg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 /**
- * @brief Initialize the rendering window/screen.
- * @param[in] width The screen width.
- * @param[in] height The screen height.
- * @return True if initialization was successful, false otherwise.
+ * @brief The window type.
  */
-bool screen_init(const uint8_t width, const uint8_t height);
+typedef struct window_t window_t;
 
 /**
- * @brief Deallocate screen resources, including framebuffer data.
+ * @brief Initialize the rendering window/screen.
+ * @param[in] width The window width.
+ * @param[in] height The window height.
+ * @return The initialized window if successful, NULL otherwise.
  */
-void screen_teardown();
+window_t* window_init(const uint8_t width, const uint8_t height);
+
+/**
+ * @brief Deallocate window resources, including framebuffer data.
+ * @param[in,out] The window to teardown.
+ */
+void window_teardown(window_t* window);
 
 /**
  * @brief Draw a wireframe from vertices given indices.
@@ -41,13 +47,15 @@ void screen_teardown();
  * Drawing is done directly to the framebuffer. The render() function must be
  * called in order for the framebuffer data to be printed/displayed.
  *
+ * @param[in] window The window to draw to.
  * @param[in] vertices An array of vertices in clip space.
  * @param[in] num_vertices The number of vertices in the vertices array.
  * @param[in] indices An array of indices.
  * @param[in] num_indices The number of indices in the indices array.
  * @return True if drawing was successful, false otherwise.
  */
-bool draw_wireframe(
+bool window_draw_wireframe(
+	const window_t* const window,
 	const vec4f_t vertices[],
 	const uint16_t num_vertices,
 	const vec3u_t indices[],
@@ -55,8 +63,9 @@ bool draw_wireframe(
 ); 
 
 /**
- * @brief Render the data within the framebuffer.
+ * @brief Render framebuffer data within a window.
+ * @param[in] window The window to render.
  */
-void render();
+void window_render(const window_t* const window);
 
-#endif // RENDER_H
+#endif // WINDOW_H
