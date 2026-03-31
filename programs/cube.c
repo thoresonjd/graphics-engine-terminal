@@ -99,6 +99,21 @@ static const vec3u_t cube_indices[12] = {
 };
 
 /**
+ * @brief Initialize terminal settings.
+ */
+static void terminal_init();
+
+/**
+ * @brief Reset terminal settings.
+ */
+static void terminal_reset();
+
+/**
+ * @brief Process keyboard input.
+ */
+static void process_input(window_t* const window);
+
+/**
  * @brief Temporarily halt execution for a specified number of milliseconds.
  * @param[in] delay The number of milliseconds.
  */
@@ -118,10 +133,12 @@ int main(void) {
 	window_t* window = window_init(SCREEN_WIDTH, SCREEN_HEIGHT);
 	if (!window)
 		return 1;
+	terminal_init();
 	// render loop
 	terminal_clear_screen();
-	while (1) {
+	while (window_is_open(window)) {
 		terminal_reset_cursor();
+		process_input(window);
 	    angle += 180.0f * delta_time_frame;
 	    mat4f_t model = FMAT4_IDENTITY;
 		mat4f_scale(model, model, scale);
@@ -152,7 +169,24 @@ int main(void) {
 		delta_time_start += delta_time_frame;
 	}
 	window_teardown(window);
+	terminal_reset();
 	return 0;
+}
+
+static void terminal_init() {
+	terminal_set_noncanon();
+	terminal_set_input_nonblocking();
+}
+
+static void terminal_reset() {
+	terminal_set_input_blocking();
+    terminal_set_canon();
+}
+
+static void process_input(window_t* const window) {
+	char c = terminal_get_input_char();
+	if (c == 'q' || c == 'Q')
+		window_set_close(window);
 }
 
 static void millisleep(const uint16_t delay) {

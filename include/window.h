@@ -68,4 +68,17 @@ bool window_draw_wireframe(
  */
 void window_render(const window_t* const window);
 
+/**
+ * @brief Determine if the window is open.
+ * @param[in] window The window.
+ * @return True if the window is open, false otherwise.
+ */
+bool window_is_open(const window_t* const window);
+
+/**
+ * @brief Close the window.
+ * @param[in,out] window The window to close.
+ */
+void window_set_close(window_t* const window);
+
 #endif // WINDOW_H

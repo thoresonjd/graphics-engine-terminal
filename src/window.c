@@ -37,6 +37,11 @@ typedef struct window_t {
 	 * @brief The height of the window.
 	 */
 	uint8_t height;
+
+	/**
+	 * @brief Determine if the window is open.
+	 */
+	bool is_open;
 } window_t;
 
 /**
@@ -205,6 +210,7 @@ window_t* window_init(const uint8_t width, const uint8_t height) {
 		free(window);
 		return NULL;
 	}
+	window->is_open = true;
 	window_framebuffer_clear(window);
 	return window;
 }
@@ -253,6 +259,14 @@ void window_render(const window_t* const window) {
 		if (i % window->width == window->width - 1)
 			putchar('\n');
 	}
+}
+
+bool window_is_open(const window_t* const window) {
+	return window->is_open;
+}
+
+void window_set_close(window_t* const window) {
+	window->is_open = false;
 }
 
 static bool line_clip(const vec4f_t vertex_a, const vec4f_t vertex_b) {
