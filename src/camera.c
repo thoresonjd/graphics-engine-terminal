@@ -97,11 +97,7 @@ void camera_compute_view_matrix(
 	const camera_t* const camera,
 	mat4f_t out_view_matrix
 ) {
-	vec3f_t direction = {
-		.x = camera->position.x + camera->front.x,
-		.y = camera->position.y + camera->front.y,
-		.z = camera->position.z + camera->front.z,
-	};
+	vec3f_t direction = vec3f_add(camera->position, camera->front);
 	mat4f_look_at(out_view_matrix, camera->position, direction, camera->up);
 }
 
@@ -120,69 +116,33 @@ void camera_move(
 	vec3f_t* const up = &camera->up;
 	switch(direction) {
 		case CAMERA_DIRECTION_FORWARD: {
-			const vec3f_t distance_traveled = {
-				.x = front->x * velocity,
-				.y = front->y * velocity,
-				.z = front->z * velocity
-			};
-			position->x += distance_traveled.x;
-			position->y += distance_traveled.y;
-			position->z += distance_traveled.z;
+			const vec3f_t distance = vec3f_float_multiply(*front, velocity);
+			*position = vec3f_add(*position, distance);
 			break;
 		}
 		case CAMERA_DIRECTION_BACKWARD: {
-			const vec3f_t distance_traveled = {
-				.x = front->x * velocity,
-				.y = front->y * velocity,
-				.z = front->z * velocity
-			};
-			position->x -= distance_traveled.x;
-			position->y -= distance_traveled.y;
-			position->z -= distance_traveled.z;
+			const vec3f_t distance = vec3f_float_multiply(*front, velocity);
+			*position = vec3f_subtract(*position, distance);
 			break;
 		}
 		case CAMERA_DIRECTION_LEFT: {
-			const vec3f_t distance_traveled = {
-				.x = right->x * velocity,
-				.y = right->y * velocity,
-				.z = right->z * velocity
-			};
-			position->x -= distance_traveled.x;
-			position->y -= distance_traveled.y;
-			position->z -= distance_traveled.z;
+			const vec3f_t distance = vec3f_float_multiply(*right, velocity);
+			*position = vec3f_subtract(*position, distance);
 			break;
 		}
 		case CAMERA_DIRECTION_RIGHT: {
-			const vec3f_t distance_traveled = {
-				.x = right->x * velocity,
-				.y = right->y * velocity,
-				.z = right->z * velocity
-			};
-			position->x += distance_traveled.x;
-			position->y += distance_traveled.y;
-			position->z += distance_traveled.z;
+			const vec3f_t distance = vec3f_float_multiply(*right, velocity);
+			*position = vec3f_add(*position, distance);
 			break;
 		}
 		case CAMERA_DIRECTION_UP: {
-			const vec3f_t distance_traveled = {
-				.x = up->x * velocity,
-				.y = up->y * velocity,
-				.z = up->z * velocity
-			};
-			position->x += distance_traveled.x;
-			position->y += distance_traveled.y;
-			position->z += distance_traveled.z;
+			const vec3f_t distance = vec3f_float_multiply(*up, velocity);
+			*position = vec3f_add(*position, distance);
 			break;
 		}
 		case CAMERA_DIRECTION_DOWN: {
-			const vec3f_t distance_traveled = {
-				.x = up->x * velocity,
-				.y = up->y * velocity,
-				.z = up->z * velocity
-			};
-			position->x -= distance_traveled.x;
-			position->y -= distance_traveled.y;
-			position->z -= distance_traveled.z;
+			const vec3f_t distance = vec3f_float_multiply(*up, velocity);
+			*position = vec3f_subtract(*position, distance);
 			break;
 		}
 	}

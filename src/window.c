@@ -355,18 +355,8 @@ static bool window_draw_line(
 	if (!line_clip(vertex_a, vertex_b))
 		(void)0;//return;
 	const uint8_t granularity = 100; // TODO: calculate resolution
-	const vec4f_t diff = {
-		.x = vertex_b.x - vertex_a.x, 
-		.y = vertex_b.y - vertex_a.y,
-		.z = vertex_b.z - vertex_a.z,
-		.w = vertex_b.w - vertex_a.w
-	};
-	const vec4f_t increment = {
-		.x = diff.x / (float)granularity,
-		.y = diff.y / (float)granularity,
-		.z = diff.z / (float)granularity,
-		.w = diff.w / (float)granularity
-	};
+	const vec4f_t diff = vec4f_subtract(vertex_b, vertex_a);
+	const vec4f_t increment = vec4f_float_divide(diff, granularity);
 	vec4f_t between = vertex_a;
 	for (uint8_t i = 0; i <= granularity; i++) {
 		if (!vertex_clip(between))
@@ -374,10 +364,7 @@ static bool window_draw_line(
 		const vec4f_t screen_between = window_vertex_screen(window, vertex_ndc(between));
 		if (!window_write_framebuffer(window, screen_between))
 			return false;
-		between.x += increment.x;
-		between.y += increment.y;
-		between.z += increment.z;
-		between.w += increment.w;
+		between = vec4f_add(between, increment);
 	}
 	return true;
 }

@@ -166,6 +166,69 @@ void mat4f_look_at(
 vec4f_t vec4f_mat4f_multiply(const vec4f_t vector, const mat4f_t matrix);
 
 /**
+ * @brief Add two four-element floating point vectors together.
+ * @param[in] vector_a The first vector.
+ * @param[in] vector_b The second vector.
+ * @return The sum of both vectors.
+ */
+vec4f_t vec4f_add(const vec4f_t vector_a, const vec4f_t vector_b);
+
+/**
+ * @brief Subtract two four-element floating point vectors.
+ * @param[in] vector_a The first vector.
+ * @param[in] vector_b The second vector.
+ * @return The difference of both vectors.
+ */
+vec4f_t vec4f_subtract(const vec4f_t vector_a, const vec4f_t vector_b);
+
+/**
+ * @brief Divide a four-element vector of floats by a scalar value.
+ * @param[in] vector The vector.
+ * @param[in] scalar The scalar.
+ * @return The divided vector.
+ */
+vec4f_t vec4f_float_divide(const vec4f_t vector, const float scalar);
+
+/**
+ * @brief Add two three-element floating point vectors together.
+ * @param[in] vector_a The first vector.
+ * @param[in] vector_b The second vector.
+ * @return The sum of both vectors.
+ */
+vec3f_t vec3f_add(const vec3f_t vector_a, const vec3f_t vector_b);
+
+/**
+ * @brief Subtract two three-element floating point vectors.
+ * @param[in] vector_a The first vector.
+ * @param[in] vector_b The second vector.
+ * @return The difference of both vectors.
+ */
+vec3f_t vec3f_subtract(const vec3f_t vector_a, const vec3f_t vector_b);
+
+/**
+ * @brief Multiply a three-element vector of floats by a scalar value.
+ * @param[in] vector The vector.
+ * @param[in] scalar The scalar.
+ * @return The multiplied vector.
+ */
+vec3f_t vec3f_float_multiply(const vec3f_t vector, const float scalar);
+
+/**
+ * @brief Divide a three-element vector of floats by a scalar value.
+ * @param[in] vector The vector.
+ * @param[in] scalar The scalar.
+ * @return The divided vector.
+ */
+vec3f_t vec3f_float_divide(const vec3f_t vector, const float scalar);
+
+/**
+ * @brief Calculate the magnitude of a vector.
+ * @param[in] vector The vector to calculate the magnitude of.
+ * @return The vector's magnitude.
+ */
+float vec3f_magnitude(const vec3f_t vector);
+
+/**
  * @brief Normalize a three-element vector of floats.
  * 
  * A vector is normalized by dividing each element by the vector's magnitude.

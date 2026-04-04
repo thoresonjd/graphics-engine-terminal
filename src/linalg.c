@@ -100,11 +100,7 @@ void mat4f_look_at(
 	const vec3f_t target,
 	const vec3f_t world_up
 ) {
-	const vec3f_t front = vec3f_normalize((vec3f_t){
-		target.x - eye.x,
-		target.y - eye.y,
-		target.z - eye.z,
-	});
+	const vec3f_t front = vec3f_normalize(vec3f_subtract(target, eye));
 	const vec3f_t right = vec3f_normalize(vec3f_cross(front, world_up));
 	const vec3f_t up = vec3f_cross(right, front);
 	mat4f_t look_at = {
@@ -125,15 +121,73 @@ vec4f_t vec4f_mat4f_multiply(const vec4f_t vector, const mat4f_t matrix) {
 	};
 }
 
-vec3f_t vec3f_normalize(const vec3f_t vector) {
-	const float magnitude = fabsf(sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z));
-	if (!magnitude) // zero vector
+vec4f_t vec4f_add(const vec4f_t vector_a, const vec4f_t vector_b) {
+	return (vec4f_t){
+		vector_a.x + vector_b.x,
+		vector_a.y + vector_b.y,
+		vector_a.z + vector_b.z,
+		vector_a.w + vector_b.w
+	};
+}
+
+vec4f_t vec4f_subtract(const vec4f_t vector_a, const vec4f_t vector_b) {
+	return (vec4f_t){
+		vector_a.x - vector_b.x,
+		vector_a.y - vector_b.y,
+		vector_a.z - vector_b.z,
+		vector_a.w - vector_b.w
+	};
+}
+
+vec4f_t vec4f_float_divide(const vec4f_t vector, const float scalar) {
+	return (vec4f_t){
+		vector.x / scalar,
+		vector.y / scalar,
+		vector.z / scalar,
+		vector.w / scalar
+	};
+}
+
+vec3f_t vec3f_add(const vec3f_t vector_a, const vec3f_t vector_b) {
+	return (vec3f_t){
+		vector_a.x + vector_b.x,
+		vector_a.y + vector_b.y,
+		vector_a.z + vector_b.z
+	};
+}
+
+vec3f_t vec3f_subtract(const vec3f_t vector_a, const vec3f_t vector_b) {
+	return (vec3f_t){
+		vector_a.x - vector_b.x,
+		vector_a.y - vector_b.y,
+		vector_a.z - vector_b.z
+	};
+}
+
+vec3f_t vec3f_float_multiply(const vec3f_t vector, const float scalar) {
+	return (vec3f_t){
+		vector.x * scalar,
+		vector.y * scalar,
+		vector.z * scalar
+	};
+}
+
+vec3f_t vec3f_float_divide(const vec3f_t vector, const float scalar) {
+	if (scalar == 0.0f) // zero vector
 		return vector;
 	return (vec3f_t){
-		vector.x / magnitude,
-		vector.y / magnitude,
-		vector.z / magnitude
+		vector.x / scalar,
+		vector.y / scalar,
+		vector.z / scalar
 	};
+}
+
+float vec3f_magnitude(const vec3f_t vector) {
+	return fabsf(sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z));
+}
+
+vec3f_t vec3f_normalize(const vec3f_t vector) {
+	return vec3f_float_divide(vector, vec3f_magnitude(vector));
 }
 
 float vec3f_dot(const vec3f_t vector_a, const vec3f_t vector_b) {
