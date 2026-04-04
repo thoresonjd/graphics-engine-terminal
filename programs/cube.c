@@ -8,6 +8,7 @@
 #include <trig.h>
 #include <window.h>
 #include <terminal.h>
+#include <camera.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
@@ -32,7 +33,21 @@ static const float ASPECT_RATIO = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
 /**
  * @brief The camera's horizontal field of view.
  */
-static const float FIELD_OF_VIEW = 90.0f;
+static const float CAM_FOV = 90.0f;
+
+/**
+ * @brief The camera's initial position.
+ */
+static const vec3f_t CAM_POS = { 0.0f, 0.0f, 3.0f };
+/**
+ * @brief The initial front of the camera.
+ */
+static const vec3f_t CAM_FRONT = { 0.0f, 0.0f, -1.0f };
+
+/**
+ * @brief The up axis in world space.
+ */
+static const vec3f_t WORLD_UP = { 0.0f, 1.0f, 0.0f };
 
 /**
  * @brief Where the near-plane resides along the z-axis.
@@ -111,7 +126,7 @@ static void terminal_reset();
 /**
  * @brief Process keyboard input.
  */
-static void process_input(window_t* const window);
+static void process_input(window_t* const window, camera_t* const camera);
 
 /**
  * @brief Temporarily halt execution for a specified number of milliseconds.
@@ -126,27 +141,30 @@ int main(void) {
 	float delta_time_start = 0.0f;
 	// transformations
 	float angle = 0.0f;
-	const vec3f_t axis = { 1.0f, 0.5f, 0.25f };
+	//const vec3f_t axis = { 1.0f, 0.5f, 0.25f };
+	const vec3f_t axis = { 1.0f, 0.0f, 0.0f };
 	const vec3f_t scale = { 0.75f, 0.75f, 0.75 };
-	const vec3f_t translation = { 0.0f, 0.0f, -3.0f };
 	// screen dimensions
 	window_t* window = window_init(SCREEN_WIDTH, SCREEN_HEIGHT);
 	if (!window)
 		return 1;
+	// camera
+	camera_t* camera = camera_init(CAM_POS, CAM_FRONT, WORLD_UP, CAM_FOV);
+	// terminal setup
 	terminal_init();
 	// render loop
 	terminal_clear_screen();
 	while (window_is_open(window)) {
 		terminal_reset_cursor();
-		process_input(window);
+		process_input(window, camera);
 	    angle += 180.0f * delta_time_frame;
 	    mat4f_t model = FMAT4_IDENTITY;
 		mat4f_scale(model, model, scale);
 		mat4f_rotate(model, model, axis, angle_radians(angle));
-		mat4f_t view = FMAT4_IDENTITY;
-		mat4f_translate(view, view, translation);
+		mat4f_t view;
+		camera_compute_view_matrix(camera, view);
 		mat4f_t projection;
-		mat4f_perspective(projection, angle_radians(FIELD_OF_VIEW), ASPECT_RATIO, FRUSTUM_NEAR, FRUSTUM_FAR);
+		mat4f_perspective(projection, angle_radians(camera_get_fov(camera)), ASPECT_RATIO, FRUSTUM_NEAR, FRUSTUM_FAR);
 		// ----- start shader -----
 		mat4f_t transformation;
 		mat4f_multiply(transformation, projection, view);
@@ -168,6 +186,7 @@ int main(void) {
 	    millisleep(MILLIS_PER_SECOND / frames_per_second);
 		delta_time_start += delta_time_frame;
 	}
+	camera_destroy(camera);
 	window_teardown(window);
 	terminal_reset();
 	return 0;
@@ -183,10 +202,32 @@ static void terminal_reset() {
     terminal_set_canon();
 }
 
-static void process_input(window_t* const window) {
-	char c = terminal_get_input_char();
-	if (c == 'q' || c == 'Q')
+static void process_input(window_t* const window, camera_t* const camera) {
+	const float arc = 5.0f;
+	const float velocity = 0.25f;
+	const char c = terminal_get_input_char();
+	if (c == 27) // escape
 		window_set_close(window);
+	else if (c == 'w' || c == 'W')
+		camera_move(camera, CAMERA_DIRECTION_FORWARD, velocity);
+	else if (c == 'a' || c == 'A')
+		camera_move(camera, CAMERA_DIRECTION_LEFT, velocity);
+	else if (c == 's' || c == 'S')
+		camera_move(camera, CAMERA_DIRECTION_BACKWARD, velocity);
+	else if (c == 'd' || c == 'D')
+		camera_move(camera, CAMERA_DIRECTION_RIGHT, velocity);
+	else if (c == 'e' || c == 'E')
+		camera_move(camera, CAMERA_DIRECTION_UP, velocity);
+	else if (c == 'q' || c == 'Q')
+		camera_move(camera, CAMERA_DIRECTION_DOWN, velocity);
+	else if (c == 'i' || c == 'I')
+		camera_look(camera, arc, 0.0f);
+	else if (c == 'j' || c == 'J')
+		camera_look(camera, 0.0f, -arc);
+	else if (c == 'k' || c == 'K')
+		camera_look(camera, -arc, 0.0f);
+	else if (c == 'l' || c == 'L')
+		camera_look(camera, 0.0f, arc);
 }
 
 static void millisleep(const uint16_t delay) {

@@ -94,6 +94,28 @@ void mat4f_perspective(
 	memcpy(out_matrix, perspective, sizeof(mat4f_t));
 }
 
+void mat4f_look_at(
+	mat4f_t out_matrix,
+	const vec3f_t eye,
+	const vec3f_t target,
+	const vec3f_t world_up
+) {
+	const vec3f_t front = vec3f_normalize((vec3f_t){
+		target.x - eye.x,
+		target.y - eye.y,
+		target.z - eye.z,
+	});
+	const vec3f_t right = vec3f_normalize(vec3f_cross(front, world_up));
+	const vec3f_t up = vec3f_cross(right, front);
+	mat4f_t look_at = {
+		{right.x, right.y, right.z, -vec3f_dot(right, eye)},
+		{up.x, up.y, up.z, -vec3f_dot(up, eye)},
+		{-front.x, -front.y, -front.z, vec3f_dot(front, eye)},
+		{0.0f, 0.0f, 0.0f, 1.0f}
+	};
+	memcpy(out_matrix, look_at, sizeof(mat4f_t));
+}
+
 vec4f_t vec4f_mat4f_multiply(const vec4f_t vector, const mat4f_t matrix) {
 	return (vec4f_t){
 		.x = vector.x * matrix[0][0] + vector.y * matrix[0][1] + vector.z * matrix[0][2] + vector.w * matrix[0][3],
@@ -111,6 +133,18 @@ vec3f_t vec3f_normalize(const vec3f_t vector) {
 		vector.x / magnitude,
 		vector.y / magnitude,
 		vector.z / magnitude
+	};
+}
+
+float vec3f_dot(const vec3f_t vector_a, const vec3f_t vector_b) {
+	return vector_a.x * vector_b.x + vector_a.y * vector_b.y + vector_a.z * vector_b.z;
+}
+
+vec3f_t vec3f_cross(const vec3f_t vector_a, const vec3f_t vector_b) {
+	return (vec3f_t){
+		.x = vector_a.y * vector_b.z - vector_a.z * vector_b.y,
+		.y = vector_a.z * vector_b.x - vector_a.x * vector_b.z,
+		.z = vector_a.x * vector_b.y - vector_a.y * vector_b.x
 	};
 }
 

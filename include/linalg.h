@@ -137,6 +137,20 @@ void mat4f_perspective(
 );
 
 /**
+ * @brief Create a look at matrix.
+ * @param[out] out_matrix The output matrix.
+ * @param[in] eye The position of the source.
+ * @param[in] target The center of view; the view target.
+ * @param[in] world_up Axis pointing upward in world space.
+ */
+void mat4f_look_at(
+	mat4f_t out_matrix,
+	const vec3f_t eye,
+	const vec3f_t target,
+	const vec3f_t world_up
+);
+
+/**
  * @brief Multiply a four-element vector of floats with a four-by-four
  *        matrix of floats.
  *
@@ -163,6 +177,22 @@ vec4f_t vec4f_mat4f_multiply(const vec4f_t vector, const mat4f_t matrix);
  * @return The normalized vector.
  */
 vec3f_t vec3f_normalize(const vec3f_t vector);
+
+/**
+ * @brief Comput the dot product (scalar product) of two vectors.
+ * @param[in] vector_a The first vector.
+ * @param[in] vector_b The second vector.
+ * @return The computed dot product.
+ */
+float vec3f_dot(const vec3f_t vector_a, const vec3f_t vector_b);
+
+/**
+ * @brief Compute the cross product of two vectors.
+ * @param[in] vector_a The first vector.
+ * @param[in] vector_b The second vector.
+ * @return The vector computed as the cross product.
+ */
+vec3f_t vec3f_cross(const vec3f_t vector_a, const vec3f_t vector_b);
 
 #endif // LINALG_H
 

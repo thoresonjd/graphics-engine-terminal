@@ -12,6 +12,7 @@ LINEAR_ALGEBRA = linalg
 TRIGONOMETRY = trig
 WINDOW = window
 TERMINAL = terminal
+CAMERA = camera
 
 all: setup $(PROGRAM)
 
@@ -27,7 +28,8 @@ $(PROGRAM): $(PROGRAM_DIR)/$(PROGRAM).$(C_EXT) \
 			$(OBJ_DIR)/$(LINEAR_ALGEBRA).$(OBJ_EXT) \
 			$(OBJ_DIR)/$(TRIGONOMETRY).$(OBJ_EXT) \
 			$(OBJ_DIR)/$(WINDOW).$(OBJ_EXT) \
-			$(OBJ_DIR)/$(TERMINAL).$(OBJ_EXT)
+			$(OBJ_DIR)/$(TERMINAL).$(OBJ_EXT) \
+			$(OBJ_DIR)/$(CAMERA).$(OBJ_EXT)
 	$(C) $(C_FLAGS) $^ -lm -o $(BIN_DIR)/$@
 
 $(OBJ_DIR)/$(LINEAR_ALGEBRA).$(OBJ_EXT): $(SRC_DIR)/$(LINEAR_ALGEBRA).$(C_EXT)
@@ -41,3 +43,7 @@ $(OBJ_DIR)/$(WINDOW).$(OBJ_EXT): $(SRC_DIR)/$(WINDOW).$(C_EXT)
 
 $(OBJ_DIR)/$(TERMINAL).$(OBJ_EXT): $(SRC_DIR)/$(TERMINAL).$(C_EXT)
 	$(C) $(C_FLAGS) $< -c -o $@
+
+$(OBJ_DIR)/$(CAMERA).$(OBJ_EXT): $(SRC_DIR)/$(CAMERA).$(C_EXT)
+	$(C) $(C_FLAGS) $< -lm -c -o $@
+
