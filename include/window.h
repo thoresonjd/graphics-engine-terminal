@@ -28,8 +28,9 @@ window_t* window_init(const uint8_t width, const uint8_t height);
 /**
  * @brief Deallocate window resources, including framebuffer data.
  * @param[in,out] The window to teardown.
+ * @return True if teardown was successful, false otherwise.
  */
-void window_teardown(window_t* window);
+bool window_teardown(window_t* window);
 
 /**
  * @brief Draw a wireframe from vertices given indices.
@@ -55,7 +56,7 @@ void window_teardown(window_t* window);
  * @return True if drawing was successful, false otherwise.
  */
 bool window_draw_wireframe(
-	const window_t* const window,
+	window_t* const window,
 	const vec4f_t vertices[],
 	const uint16_t num_vertices,
 	const vec3u_t indices[],
@@ -65,8 +66,9 @@ bool window_draw_wireframe(
 /**
  * @brief Render framebuffer data within a window.
  * @param[in] window The window to render.
+ * @return True if rendering was successful, false otherwise.
  */
-void window_render(const window_t* const window);
+bool window_render(const window_t* const window);
 
 /**
  * @brief Determine if the window is open.
@@ -78,7 +80,8 @@ bool window_is_open(const window_t* const window);
 /**
  * @brief Close the window.
  * @param[in,out] window The window to close.
+ * @return True if window was successfully set to close, false otherwise.
  */
-void window_set_close(window_t* const window);
+bool window_set_close(window_t* const window);
 
 #endif // WINDOW_H

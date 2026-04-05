@@ -71,7 +71,7 @@ static bool line_clip(const vec4f_t vertex_a, const vec4f_t vertex_b);
  * view frustum. Thus, and object entirely outside the frustum will still
  * undergoes the drawing process. Instead, in future, this function, along with
  * line_clip, should merge and expand to prevent the drawing process from
- * occuring for excess pixels entirely outside of view.
+ * occurring for excess pixels entirely outside of view.
  *
  * @param[in] vertex A vertex.
  * @return True if the vertex is within the view frustum, false otherwise.
@@ -82,10 +82,11 @@ static bool vertex_clip(const vec4f_t vertex);
  * @brief Convert a vertex in clip space to normalized device coordinates via
  *        perspective divide. Perspective divide is achieved in this case by
  *        dividing x, y, and z coordinates by w. 
+ * @param[out] out_vertex The converted output vertex.
  * @param[in] vertex A vertex to convert to normalized device coordinates.
- * @return The converted vector in normalized device coordinates.
+ * @return True if conversion was successful, false otherwise.
  */
-static vec4f_t vertex_ndc(const vec4f_t vertex);
+static bool vertex_ndc(vec4f_t* const out_vertex, const vec4f_t vertex);
 
 /**
  * @brief Convert a vertex's coordinates to screen-space.
@@ -121,7 +122,7 @@ static vec4f_t vertex_ndc(const vec4f_t vertex);
  *          -1
  *
  * Thus, to go from clip-space to screen-space:
- * 1) Add 1 to each coorinate to bring the range up to 0 to 2
+ * 1) Add 1 to each coordinate to bring the range up to 0 to 2
  * 2) Divide by 2 to normalize the coordinate to the range of 0 to 1
  * 3) If a screen-space axis grows in the opposite direction of the
  *    corresponding clip-space axis, take the result of the second step and
@@ -130,11 +131,13 @@ static vec4f_t vertex_ndc(const vec4f_t vertex);
  *
  * @param[in] window The window whose screen dimensions are used to calculate
  *            the screen coordinates.
+ * @param[out] out_vertex The converted output vertex.
  * @param[in] vertex A vertex to convert.
- * @return The converted vertex in screen-space.
+ * @return True if conversion was successful, false otherwise.
  */
-static vec4f_t window_vertex_screen(
+static bool window_vertex_screen(
 	const window_t* const window,
+	vec4f_t* const out_vertex,
 	const vec4f_t vertex
 );
 
@@ -152,6 +155,13 @@ static bool window_framebuffer_index(
 	const uint8_t y,
 	uint16_t* const index
 );
+
+/**
+ * @brief Clear the window's framebuffer.
+ * @param[in,out] window The window whose framebuffer must be cleared.
+ * @return True if clearing was successful, false otherwise.
+ */
+static bool window_framebuffer_clear(window_t* const window);
 
 /**
  * @brief Write a pixel to the framebuffer
@@ -192,11 +202,6 @@ static bool window_draw_triangle(
 	const vec4f_t vertex_c
 );
 
-static void window_framebuffer_clear(const window_t* const window) {
-	const uint16_t window_size = window->width * window->height;
-	memset(window->framebuffer, ' ', window_size);
-}
-
 window_t* window_init(const uint8_t width, const uint8_t height) {
 	if (width <= 0 || height <= 0)
 		return NULL;
@@ -211,24 +216,32 @@ window_t* window_init(const uint8_t width, const uint8_t height) {
 		return NULL;
 	}
 	window->is_open = true;
-	window_framebuffer_clear(window);
+	if (!window_framebuffer_clear(window))
+		return NULL;
 	return window;
 }
 
-void window_teardown(window_t* window) {
+bool window_teardown(window_t* window) {
+	if (!window)
+		return false;
+	if (!window->framebuffer)
+		return false;
 	free(window->framebuffer);
 	window->framebuffer = NULL;
 	free(window);
 	window = NULL;
+	return true;
 }
 
 bool window_draw_wireframe(
-	const window_t* const window,
+	window_t* const window,
 	const vec4f_t vertices[],
 	const uint16_t num_vertices,
 	const vec3u_t indices[],
 	const uint16_t num_indices
 ) {
+	if (!window)
+		return false;
 	/*
 	 * TODO:
 	 * Clearing the framebuffer when drawing each wireframe prevents multiple
@@ -237,7 +250,8 @@ bool window_draw_wireframe(
 	 * one wireframe. Eventually, a double buffer and a depth buffer will be
 	 * implemented to assist in solving this.
 	 */
-	window_framebuffer_clear(window);
+	if (!window_framebuffer_clear(window))
+		return false;
 	for (uint16_t i = 0; i < num_indices; i++) {
 		if (indices[i].x > num_vertices ||
 			indices[i].y > num_vertices ||
@@ -252,21 +266,29 @@ bool window_draw_wireframe(
 	return true;
 }
 
-void window_render(const window_t* const window) {
+bool window_render(const window_t* const window) {
+	if (!window)
+		return false;
 	const uint16_t window_size = window->width * window->height;
 	for (uint16_t i = 0; i < window_size; i++) {
 		putchar(window->framebuffer[i]);
 		if (i % window->width == window->width - 1)
 			putchar('\n');
 	}
+	return true;
 }
 
 bool window_is_open(const window_t* const window) {
+	if (!window)
+		return false;
 	return window->is_open;
 }
 
-void window_set_close(window_t* const window) {
+bool window_set_close(window_t* const window) {
+	if (!window)
+		return false;
 	window->is_open = false;
+	return true;
 }
 
 static bool line_clip(const vec4f_t vertex_a, const vec4f_t vertex_b) {
@@ -289,25 +311,32 @@ static bool vertex_clip(const vec4f_t vertex) {
 	return true;
 }
 
-static vec4f_t vertex_ndc(const vec4f_t vertex) {
-	return (vec4f_t){
+static bool vertex_ndc(vec4f_t* const out_vertex, const vec4f_t vertex) {
+	if (vertex.w == 0.0f)
+		return false;
+	*out_vertex = (vec4f_t){
 		.x = vertex.x / vertex.w,
 		.y = vertex.y / vertex.w,
 		.z = vertex.z / vertex.w,
 		.w = vertex.w
 	};
+	return true;
 }
 
-static vec4f_t window_vertex_screen(
+static bool window_vertex_screen(
 	const window_t* const window,
+	vec4f_t* const out_vertex,
 	const vec4f_t vertex
 ) {
-	return (vec4f_t){
-		.x = ((vertex.x + 1) / 2) * (float)window->width,
-		.y = (1 - (vertex.y + 1) / 2) * (float)window->height,
+	if (!window)
+		return false;
+	*out_vertex = (vec4f_t){
+		.x = ((vertex.x + 1.0f) / 2.0f) * (float)window->width,
+		.y = (1.0f - (vertex.y + 1.0f) / 2.0f) * (float)window->height,
 		.z = vertex.z,
 		.w = vertex.w
 	};
+	return true;
 }
 
 static bool window_framebuffer_index(
@@ -316,9 +345,17 @@ static bool window_framebuffer_index(
 	const uint8_t y,
 	uint16_t* const index
 ) {
-	if (x > window->width || y > window->height)
+	if (!window || x > window->width || y > window->height)
 		return false;
 	*index = window->width * y + x;
+	return true;
+}
+
+static bool window_framebuffer_clear(window_t* const window) {
+	if (!window)
+		return false;
+	const uint16_t window_size = window->width * window->height;
+	memset(window->framebuffer, ' ', window_size);
 	return true;
 }
 
@@ -326,7 +363,8 @@ static bool window_write_framebuffer(
 	const window_t* const window,
 	const vec4f_t screen_pixel
 ) {
-	if (screen_pixel.x < 0.0f || screen_pixel.x > window->width ||
+	if (!window ||
+		screen_pixel.x < 0.0f || screen_pixel.x > window->width ||
 		screen_pixel.y < 0.0f || screen_pixel.y > window->height)
 		return false;
 	uint16_t index;
@@ -341,19 +379,21 @@ static bool window_draw_line(
 	const vec4f_t vertex_a,
 	const vec4f_t vertex_b
 ) {
+	if (!window)
+		return false;
 	/*
      * TODO:
      * Currently, line_clip will prevent a line from being rendered in its
      * entirety if either or both vertices are outside the view frustum.
      * However, vertex_clip currently determines if a single interpolated pixel
-     * must be excluded or not, which is a better visual aproach. However, this
+     * must be excluded or not, which is a better visual approach. However, this
      * still means each interpolated pixel must be processed even if the entire
      * line is outside the frustum. In future, lines (and, eventually, full
      * faces) should only have the pixels within the frustum processed by the
      * drawing function to reduce computational overhead.
      */
 	if (!line_clip(vertex_a, vertex_b))
-		(void)0;//return;
+		(void)0;
 	const uint8_t granularity = 100; // TODO: calculate resolution
 	const vec4f_t diff = vec4f_subtract(vertex_b, vertex_a);
 	const vec4f_t increment = vec4f_float_divide(diff, granularity);
@@ -361,8 +401,11 @@ static bool window_draw_line(
 	for (uint8_t i = 0; i <= granularity; i++) {
 		if (!vertex_clip(between))
 			continue;
-		const vec4f_t screen_between = window_vertex_screen(window, vertex_ndc(between));
-		if (!window_write_framebuffer(window, screen_between))
+		vec4f_t ndc_between;
+		vec4f_t screen_between;
+		if (!vertex_ndc(&ndc_between, between) ||
+			!window_vertex_screen(window, &screen_between, ndc_between) ||
+			!window_write_framebuffer(window, screen_between))
 			return false;
 		between = vec4f_add(between, increment);
 	}
@@ -375,6 +418,8 @@ static bool window_draw_triangle(
 	const vec4f_t vertex_b,
 	const vec4f_t vertex_c
 ) {
+	if (!window)
+		return false;
 	return
 		window_draw_line(window, vertex_a, vertex_b) &&
 		window_draw_line(window, vertex_b, vertex_c) &&

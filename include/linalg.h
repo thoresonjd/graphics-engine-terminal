@@ -111,7 +111,7 @@ void mat4f_rotate(
  *
  * @param[out] out_matrix The output matrix.
  * @param[in] matrix The input matrix to translate.
- * @param[in] vector The vector whose components are traslators.
+ * @param[in] vector The vector whose components are translators.
  */
 void mat4f_translate(
 	mat4f_t out_matrix,
@@ -156,7 +156,7 @@ void mat4f_look_at(
  *
  * To multiply a vector with a matrix, the vector must have the same number of
  * elements as the number of columns within the matrix. Thus, if the vector
- * represents a three-dimensional coordiante in space, the fourth element is
+ * represents a three-dimensional coordinate in space, the fourth element is
  * the additional coordinate w that makes the coordinates homogeneous.
  *
  * @param[in] vector A four-element vector of floats.
@@ -242,7 +242,7 @@ float vec3f_magnitude(const vec3f_t vector);
 vec3f_t vec3f_normalize(const vec3f_t vector);
 
 /**
- * @brief Comput the dot product (scalar product) of two vectors.
+ * @brief Compute the dot product (scalar product) of two vectors.
  * @param[in] vector_a The first vector.
  * @param[in] vector_b The second vector.
  * @return The computed dot product.

@@ -173,7 +173,7 @@ vec3f_t vec3f_float_multiply(const vec3f_t vector, const float scalar) {
 }
 
 vec3f_t vec3f_float_divide(const vec3f_t vector, const float scalar) {
-	if (scalar == 0.0f) // zero vector
+	if (scalar == 0.0f)
 		return vector;
 	return (vec3f_t){
 		vector.x / scalar,
@@ -201,25 +201,4 @@ vec3f_t vec3f_cross(const vec3f_t vector_a, const vec3f_t vector_b) {
 		.z = vector_a.x * vector_b.y - vector_a.y * vector_b.x
 	};
 }
-
-#if 0
-/**
- * @brief Project a vector in three-dimensional space onto the two-dimensional
- *        screen.
- *
- * Projection is accomplished via perspective divide.
- *
- * v = <x, y, z> -> v' = <x/z, y/z, z>
- *
- * @param[in] vector A vertex to project.
- * @return The corresponding projected vector.
- */
-vec3f_t vec3f_project(const vec3f_t vector) {
-	return (vec3f_t){
-		.x = vector.x / vector.z,
-		.y = vector.y / vector.z,
-		.z = vector.z
-	};
-}
-#endif 
 

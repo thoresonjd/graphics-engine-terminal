@@ -9,6 +9,7 @@
 #include <window.h>
 #include <terminal.h>
 #include <camera.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
@@ -125,6 +126,8 @@ static void terminal_reset();
 
 /**
  * @brief Process keyboard input.
+ * @param[in,out] window The window.
+ * @param[in,out] camera The camera.
  */
 static void process_input(window_t* const window, camera_t* const camera);
 
@@ -141,8 +144,7 @@ int main(void) {
 	float delta_time_start = 0.0f;
 	// transformations
 	float angle = 0.0f;
-	//const vec3f_t axis = { 1.0f, 0.5f, 0.25f };
-	const vec3f_t axis = { 1.0f, 0.0f, 0.0f };
+	const vec3f_t axis = { 1.0f, 0.5f, 0.25f };
 	const vec3f_t scale = { 0.75f, 0.75f, 0.75 };
 	// screen dimensions
 	window_t* window = window_init(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -179,15 +181,16 @@ int main(void) {
 			};
 			transformed[i] = vec4f_mat4f_multiply(transformed[i], transformation);
 		}
-		if (!window_draw_wireframe(window, transformed, 8, cube_indices, 12))
-			break;
-		window_render(window);
 		// ----- end shader -----
-	    millisleep(MILLIS_PER_SECOND / frames_per_second);
-		delta_time_start += delta_time_frame;
+		if (window_draw_wireframe(window, transformed, 8, cube_indices, 12) &&
+			window_render(window)) {
+			millisleep(MILLIS_PER_SECOND / frames_per_second);
+			delta_time_start += delta_time_frame;
+		}
 	}
 	camera_destroy(camera);
-	window_teardown(window);
+	if (!window_teardown(window))
+		return 1;
 	terminal_reset();
 	return 0;
 }
@@ -207,7 +210,7 @@ static void process_input(window_t* const window, camera_t* const camera) {
 	const float velocity = 0.25f;
 	const char c = terminal_get_input_char();
 	if (c == 27) // escape
-		window_set_close(window);
+		(void)window_set_close(window);
 	else if (c == 'w' || c == 'W')
 		camera_move(camera, CAMERA_DIRECTION_FORWARD, velocity);
 	else if (c == 'a' || c == 'A')

@@ -25,7 +25,7 @@ struct camera_t {
 	vec3f_t front;
 
 	/**
-	 * @brief Axis pointing to the right relateive to the camera.
+	 * @brief Axis pointing to the right relative to the camera.
 	 */
 	vec3f_t right;
 
