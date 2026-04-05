@@ -209,7 +209,7 @@ static void process_input(window_t* const window, camera_t* const camera) {
 	const float arc = 5.0f;
 	const float velocity = 0.25f;
 	const char c = terminal_get_input_char();
-	if (c == 27) // escape
+	if (c == 'q' || c == 'Q')
 		(void)window_set_close(window);
 	else if (c == 'w' || c == 'W')
 		camera_move(camera, CAMERA_DIRECTION_FORWARD, velocity);
@@ -220,9 +220,9 @@ static void process_input(window_t* const window, camera_t* const camera) {
 	else if (c == 'd' || c == 'D')
 		camera_move(camera, CAMERA_DIRECTION_RIGHT, velocity);
 	else if (c == 'e' || c == 'E')
-		camera_move(camera, CAMERA_DIRECTION_UP, velocity);
-	else if (c == 'q' || c == 'Q')
 		camera_move(camera, CAMERA_DIRECTION_DOWN, velocity);
+	else if (c == 'r' || c == 'R')
+		camera_move(camera, CAMERA_DIRECTION_UP, velocity);
 	else if (c == 'i' || c == 'I')
 		camera_look(camera, arc, 0.0f);
 	else if (c == 'j' || c == 'J')
